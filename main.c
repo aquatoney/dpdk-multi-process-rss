@@ -270,9 +270,9 @@ smp_port_init(uint16_t port, struct rte_mempool *mbuf_pool,
 					.rss_key = seed,
 					.rss_key_len = sizeof(seed),
 					// .rss_hf = ETH_RSS_IP | ETH_RSS_UDP | ETH_RSS_TCP,
-					// .rss_hf = ETH_RSS_NONFRAG_IPV4_TCP | ETH_RSS_NONFRAG_IPV4_UDP |
-							  // ETH_RSS_NONFRAG_IPV4_SCTP | ,
-					.rss_hf = ETH_RSS_TCP | ETH_RSS_UDP | ETH_RSS_IP | ETH_RSS_SCTP,
+					.rss_hf = ETH_RSS_NONFRAG_IPV4_TCP | ETH_RSS_NONFRAG_IPV4_UDP |
+							  ETH_RSS_NONFRAG_IPV4_SCTP,
+					// .rss_hf = ETH_RSS_TCP | ETH_RSS_UDP | ETH_RSS_IP | ETH_RSS_SCTP,
 				},
 			},
 			.txmode = {

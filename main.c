@@ -217,15 +217,16 @@ set_xl710_nic(uint16_t port)
 	// i40e支持的所有flow type见drivers/net/i40e/i40e_ethdev.c, I40E_FLOW_TYPES
 	//set_flow_type_mask(&info, RTE_ETH_FLOW_IPV4);
 	// set_flow_type_mask(&info, RTE_ETH_FLOW_FRAG_IPV4);
-	// set_flow_type_mask(&info, RTE_ETH_FLOW_NONFRAG_IPV4_OTHER);
 	//set_flow_type_mask(&info, RTE_ETH_FLOW_IPV6);
 	// set_flow_type_mask(&info, RTE_ETH_FLOW_FRAG_IPV6);
 	// set_flow_type_mask(&info, RTE_ETH_FLOW_NONFRAG_IPV6_OTHER);
 	//set_flow_type_mask(&info, RTE_ETH_FLOW_IPV6_EX);
 	set_flow_type_mask(&info, RTE_ETH_FLOW_NONFRAG_IPV4_TCP);
+	set_flow_type_mask(&info, RTE_ETH_FLOW_NONFRAG_IPV4_UDP);
+	set_flow_type_mask(&info, RTE_ETH_FLOW_NONFRAG_IPV4_SCTP);
+	set_flow_type_mask(&info, RTE_ETH_FLOW_NONFRAG_IPV4_OTHER);
 	// set_flow_type_mask(&info, RTE_ETH_FLOW_NONFRAG_IPV6_TCP);
 	//set_flow_type_mask(&info, RTE_ETH_FLOW_IPV6_TCP_EX);
-	set_flow_type_mask(&info, RTE_ETH_FLOW_NONFRAG_IPV4_UDP);
 	// set_flow_type_mask(&info, RTE_ETH_FLOW_NONFRAG_IPV6_UDP);
 	//set_flow_type_mask(&info, RTE_ETH_FLOW_IPV6_UDP_EX);
 
@@ -269,8 +270,9 @@ smp_port_init(uint16_t port, struct rte_mempool *mbuf_pool,
 					.rss_key = seed,
 					.rss_key_len = sizeof(seed),
 					// .rss_hf = ETH_RSS_IP | ETH_RSS_UDP | ETH_RSS_TCP,
-					.rss_hf = ETH_RSS_NONFRAG_IPV4_TCP | ETH_RSS_NONFRAG_IPV4_UDP,
-					// .rss_hf = ETH_RSS_TCP | ETH_RSS_UDP | ETH_RSS_IP | ETH_RSS_L2_PAYLOAD
+					// .rss_hf = ETH_RSS_NONFRAG_IPV4_TCP | ETH_RSS_NONFRAG_IPV4_UDP |
+							  // ETH_RSS_NONFRAG_IPV4_SCTP | ,
+					.rss_hf = ETH_RSS_TCP | ETH_RSS_UDP | ETH_RSS_IP | ETH_RSS_SCTP,
 				},
 			},
 			.txmode = {

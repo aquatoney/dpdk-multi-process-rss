@@ -187,6 +187,84 @@ static uint8_t seed[40] = {
 	0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A 
 };
 
+int sym_hash_enable(int port_id, uint32_t ftype, enum rte_eth_hash_function function)
+{
+    struct rte_eth_hash_filter_info info;
+    int ret = 0;
+    uint32_t idx = 0;
+    uint32_t offset = 0;
+
+    memset(&info, 0, sizeof(info));
+
+    ret = rte_eth_dev_filter_supported(port_id, RTE_ETH_FILTER_HASH);
+    if (ret < 0) {
+        DPDK_ERROR("RTE_ETH_FILTER_HASH not supported on port: %d",
+                         port_id);
+        return ret;
+    }
+
+    info.info_type = RTE_ETH_HASH_FILTER_GLOBAL_CONFIG;
+    info.info.global_conf.hash_func = function;
+
+    idx = ftype / UINT64_BIT;
+    offset = ftype % UINT64_BIT;
+    info.info.global_conf.valid_bit_mask[idx] |= (1ULL << offset);
+    info.info.global_conf.sym_hash_enable_mask[idx] |=
+                        (1ULL << offset);
+
+    ret = rte_eth_dev_filter_ctrl(port_id, RTE_ETH_FILTER_HASH,
+                                  RTE_ETH_FILTER_SET, &info);
+    if (ret < 0)
+    {
+        DPDK_ERROR("Cannot set global hash configurations"
+                        "on port %u", port_id);
+        return ret;
+    }
+
+    return 0;
+}
+
+int sym_hash_set(int port_id, int enable)
+{
+    int ret = 0;
+    struct rte_eth_hash_filter_info info;
+
+    memset(&info, 0, sizeof(info));
+
+    ret = rte_eth_dev_filter_supported(port_id, RTE_ETH_FILTER_HASH);
+    if (ret < 0) {
+        DPDK_ERROR("RTE_ETH_FILTER_HASH not supported on port: %d",
+                         port_id);
+        return ret;
+    }
+
+    info.info_type = RTE_ETH_HASH_FILTER_SYM_HASH_ENA_PER_PORT;
+    info.info.enable = enable;
+    ret = rte_eth_dev_filter_ctrl(port_id, RTE_ETH_FILTER_HASH,
+                        RTE_ETH_FILTER_SET, &info);
+
+    if (ret < 0)
+    {
+        DPDK_ERROR("Cannot set symmetric hash enable per port "
+                        "on port %u", port_id);
+        return ret;
+    }
+
+    return 0;
+}
+
+static void
+set_xl710(uint16_t portid)
+{
+	sym_hash_enable(port_id, RTE_ETH_FLOW_NONFRAG_IPV4_TCP, RTE_ETH_HASH_FUNCTION_TOEPLITZ);
+	sym_hash_enable(port_id, RTE_ETH_FLOW_NONFRAG_IPV4_UDP, RTE_ETH_HASH_FUNCTION_TOEPLITZ);
+	sym_hash_enable(port_id, RTE_ETH_FLOW_FRAG_IPV4, RTE_ETH_HASH_FUNCTION_TOEPLITZ);
+	sym_hash_enable(port_id, RTE_ETH_FLOW_NONFRAG_IPV4_SCTP, RTE_ETH_HASH_FUNCTION_TOEPLITZ);
+	sym_hash_enable(port_id, RTE_ETH_FLOW_NONFRAG_IPV4_OTHER, RTE_ETH_HASH_FUNCTION_TOEPLITZ);
+
+	sym_hash_set(port_id, 1);
+}
+
 static void 
 set_flow_type_mask(struct rte_eth_hash_filter_info *info, uint32_t ftype)
 {
@@ -262,18 +340,24 @@ smp_port_init(uint16_t port, struct rte_mempool *mbuf_pool,
 			.rxmode = {
 				.mq_mode	= ETH_MQ_RX_RSS,
 				.split_hdr_size = 0,
-				.offloads = (DEV_RX_OFFLOAD_CHECKSUM |
-					     DEV_RX_OFFLOAD_CRC_STRIP),
+				.offloads = (DEV_RX_OFFLOAD_CHECKSUM | DEV_RX_OFFLOAD_CRC_STRIP),
 			},
 			.rx_adv_conf = {
+				// .rss_conf = {
+				// 	.rss_key = seed,
+				// 	.rss_key_len = sizeof(seed),
+				// 	// .rss_hf = ETH_RSS_IP | ETH_RSS_UDP | ETH_RSS_TCP,
+				// 	.rss_hf = ETH_RSS_NONFRAG_IPV4_TCP | ETH_RSS_NONFRAG_IPV4_UDP |
+				// 			  ETH_RSS_NONFRAG_IPV4_SCTP,
+				// 	// .rss_hf = ETH_RSS_TCP | ETH_RSS_UDP | ETH_RSS_IP | ETH_RSS_SCTP,
+				// },
 				.rss_conf = {
-					.rss_key = seed,
-					.rss_key_len = sizeof(seed),
-					// .rss_hf = ETH_RSS_IP | ETH_RSS_UDP | ETH_RSS_TCP,
-					.rss_hf = ETH_RSS_NONFRAG_IPV4_TCP | ETH_RSS_NONFRAG_IPV4_UDP |
-							  ETH_RSS_NONFRAG_IPV4_SCTP,
-					// .rss_hf = ETH_RSS_TCP | ETH_RSS_UDP | ETH_RSS_IP | ETH_RSS_SCTP,
-				},
+				    .rss_hf = ETH_RSS_IP |
+				          ETH_RSS_TCP |
+				          ETH_RSS_UDP |
+				          ETH_RSS_SCTP,
+				}
+
 			},
 			.txmode = {
 				.mq_mode = ETH_MQ_TX_NONE,
@@ -320,9 +404,10 @@ smp_port_init(uint16_t port, struct rte_mempool *mbuf_pool,
 	if (retval < 0)
 		return retval;
 
-	retval = set_xl710_nic(port);
-	if (retval < 0)
-		return retval;
+	set_xl710(port);
+	// retval = set_xl710_nic(port);
+	// if (retval < 0)
+		// return retval;
 
 	retval = rte_eth_dev_adjust_nb_rx_tx_desc(port, &nb_rxd, &nb_txd);
 	if (retval < 0)

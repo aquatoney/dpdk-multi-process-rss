@@ -254,7 +254,7 @@ int sym_hash_set(int port_id, int enable)
 }
 
 static void
-set_xl710(uint16_t portid)
+set_xl710(uint16_t port_id)
 {
 	sym_hash_enable(port_id, RTE_ETH_FLOW_NONFRAG_IPV4_TCP, RTE_ETH_HASH_FUNCTION_TOEPLITZ);
 	sym_hash_enable(port_id, RTE_ETH_FLOW_NONFRAG_IPV4_UDP, RTE_ETH_HASH_FUNCTION_TOEPLITZ);

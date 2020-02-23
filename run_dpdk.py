@@ -1,4 +1,5 @@
 import sys, os, time, subprocess
+import signal
 import argparse
 
 proc_list = []
@@ -40,20 +41,20 @@ def exit(signum, frame):
   print('Ready to exit.')
   to_kill = True
 
-# python3 run_dpdk.py ./rubik {cpu:'1-4',port='0-1'} {cpu:'5-8',port='2-3'}
+# python3 run_dpdk.py ./rubik {'c':'1-4','p'='0-1'} {'c':'5-8','p'='2-3'}
 if __name__ == '__main__':
-  assert sys.argc > 2
+  assert len(sys.argv) > 2
   signal.signal(signal.SIGINT, exit)
 
   exe = sys.argv[1]
-  for i in range(2, sys.argc):
+  for i in range(2, len(sys.argv)):
     try:
       cp_map = eval(sys.argv[i])
     except:
       print (f'Wrong format of group: {sys.argv[i]}')
       exit()
-    cpu_range = range(cp_map[cpu].split('-')[0], cp_map[cpu].split('-')[1]+1)
-    port_range = range(cp_map[port].split('-')[0], cp_map[port].split('-')[1]+1)
+    cpu_range = range(cp_map['c'].split('-')[0], cp_map['c'].split('-')[1]+1)
+    port_range = range(cp_map['p'].split('-')[0], cp_map['p'].split('-')[1]+1)
     cmd (exe, cpu_range, port_range, i)
 
   print('All processes are running')

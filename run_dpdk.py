@@ -41,6 +41,11 @@ def exit(signum, frame):
   print('Ready to exit.')
   to_kill = True
 
+def str2range(s):
+  start = int(s.split('-')[0])
+  end = int(s.split('-')[1])
+  return range(start, end+1)
+
 # python3 run_dpdk.py build/symmetric_mp {'c':'1-4','p':'0-1'} {'c':'5-8','p':'2-3'}
 if __name__ == '__main__':
   assert len(sys.argv) > 2
@@ -54,12 +59,13 @@ if __name__ == '__main__':
       for p in cp_str.split(','):
         key = p.split(':')[0]
         value = p.split(':')[1]
-        cp_map[key] = value
+        if key == 'c':
+          cpu_range = str2range(value)
+        if key == 'p'
+          port_range = str2range(value)
     except:
       print (f'Wrong format of group: {sys.argv[i]}')
       exit()
-    cpu_range = range(int(cp_map['c'].split('-')[0]), int(cp_map['c'].split('-')[1]+1))
-    port_range = range(int(cp_map['p'].split('-')[0]), int(cp_map['p'].split('-')[1]+1))
     cmd (exe, cpu_range, port_range, i)
 
   print('All processes are running')

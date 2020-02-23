@@ -41,7 +41,7 @@ def exit(signum, frame):
   print('Ready to exit.')
   to_kill = True
 
-# python3 run_dpdk.py ./rubik {'c':'1-4','p'='0-1'} {'c':'5-8','p'='2-3'}
+# python3 run_dpdk.py build/symmetric_mp {'c':'1-4','p':'0-1'} {'c':'5-8','p':'2-3'}
 if __name__ == '__main__':
   assert len(sys.argv) > 2
   signal.signal(signal.SIGINT, exit)
@@ -49,7 +49,12 @@ if __name__ == '__main__':
   exe = sys.argv[1]
   for i in range(2, len(sys.argv)):
     try:
-      cp_map = eval(sys.argv[i])
+      cp_map = dict()
+      cp_str = sys.argv[i]
+      for p in cp_str.split(','):
+        key = p.split(':')[0]
+        value = p.split(':')[1]
+        cp_map[key] = value
     except:
       print (f'Wrong format of group: {sys.argv[i]}')
       exit()

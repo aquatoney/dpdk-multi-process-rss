@@ -15,14 +15,14 @@ def cmd(exe, cpu_range, port_range, gid):
     arg_str += f' -- -p {port_hex_str} --num-procs={thread_num} --proc-id={i}'
     # arg_str += ' &'
     print(exe_str+arg_str)
-    # while True:
-    #   proc = subprocess.Popen([exe_str+arg_str], shell=True)
-    #   # os.system(exe_str+arg_str)
-    #   c = input()
-    #   if c == '':
-    #     proc_list.append(proc)
-    #     break
-    #   proc.terminate()
+    while True:
+      proc = subprocess.Popen([exe_str+arg_str], shell=True)
+      # os.system(exe_str+arg_str)
+      c = input()
+      if c == '':
+        proc_list.append(proc)
+        break
+      proc.terminate()
 
   print(f'All processes in Group {gid} are running')
 

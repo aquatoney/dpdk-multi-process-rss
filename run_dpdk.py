@@ -50,9 +50,10 @@ def str2range(s):
 if __name__ == '__main__':
   assert len(sys.argv) > 2
   signal.signal(signal.SIGINT, exit)
-
   exe = sys.argv[1]
+
   for i in range(2, len(sys.argv)):
+    cpu_range = port_range = None
     try:
       cp_map = dict()
       cp_str = sys.argv[i]
@@ -61,11 +62,12 @@ if __name__ == '__main__':
         value = p.split(':')[1]
         if key == 'c':
           cpu_range = str2range(value)
-        if key == 'p'
+        if key == 'p':
           port_range = str2range(value)
     except:
       print (f'Wrong format of group: {sys.argv[i]}')
       exit()
+    assert cpu_range is not None and port_range is not None
     cmd (exe, cpu_range, port_range, i)
 
   print('All processes are running')

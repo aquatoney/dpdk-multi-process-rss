@@ -58,8 +58,8 @@ if __name__ == '__main__':
     except:
       print (f'Wrong format of group: {sys.argv[i]}')
       exit()
-    cpu_range = range(cp_map['c'].split('-')[0], cp_map['c'].split('-')[1]+1)
-    port_range = range(cp_map['p'].split('-')[0], cp_map['p'].split('-')[1]+1)
+    cpu_range = range(int(cp_map['c'].split('-')[0]), int(cp_map['c'].split('-')[1]+1))
+    port_range = range(int(cp_map['p'].split('-')[0]), int(cp_map['p'].split('-')[1]+1))
     cmd (exe, cpu_range, port_range, i)
 
   print('All processes are running')

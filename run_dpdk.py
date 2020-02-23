@@ -4,14 +4,17 @@ import argparse
 
 proc_list = []
 
-def cmd(exe, cpu_range, port_range, gid):
-  port_binary_str = ''.join(['1' if p in port_range else '0' for p in range(0,8)])[::-1]
-  # port_binary_str = '0' * (8-ports) + '1' * ports
+def cmd(exe, cpu_range, nics, gid):
+  port_nums = len(nics) * 2
+  # port_binary_str = ''.join(['1' if p in port_range else '0' for p in range(0,8)])[::-1]
+  port_binary_str = '0' * (8-port_nums) + '1' * port_nums
   port_hex_str = hex(int(port_binary_str, 2))
   thread_num = len(cpu_range)
   for i in range(thread_num):
     exe_str = 'sudo ' + exe
-    arg_str =  f' -l {cpu_range[i]} -n 4 --proc-type=auto --file-prefix=g{gid}'
+    arg_str =  f' -l {cpu_range[i]} -n 4 --proc-type=auto --file-prefix=g{gid} '
+    for nic in nics:
+      arg_str += f'-w {nic}.0 -w {nic}.1 '
     arg_str += f' -- -p {port_hex_str} --num-procs={thread_num} --proc-id={i}'
     # arg_str += ' &'
     print(exe_str+arg_str)
@@ -47,7 +50,7 @@ def str2range(s):
   end = int(s.split('-')[1])
   return range(start, end+1)
 
-# python3 run_dpdk.py build/symmetric_mp {c:1-4,p:0-1} {c:5-8,p:2-3}
+# python3 run_dpdk.py build/symmetric_mp {c:1-4,p:04:00} {c:5-8,p:2-3}
 if __name__ == '__main__':
   assert len(sys.argv) > 2
   signal.signal(signal.SIGINT, exit)
@@ -55,22 +58,26 @@ if __name__ == '__main__':
 
 
   for i in range(2, len(sys.argv)):
-    cpu_range = port_range = None
+    cpu_range = None
+    nics = []
     try:
-      cp_map = dict()
-      cp_str = sys.argv[i][1:-1]
+      cp_str = sys.argv[i]
+      if cp_str[0] == '{':
+        cp_str = cp_str[1:-1]
+
       for p in cp_str.split(','):
+        print ()
         key = p.split(':')[0]
         value = p.split(':')[1]
         if key == 'c':
           cpu_range = str2range(value)
         if key == 'p':
-          port_range = str2range(value)
+          nics.append(value)
     except:
       print (f'Wrong format of group: {sys.argv[i]}')
       exit()
-    assert cpu_range is not None and port_range is not None
-    cmd (exe, cpu_range, port_range, i-1)
+    assert cpu_range is not None and nics is not None
+    cmd (exe, cpu_range, nics, i-1)
 
   print('All processes are running')
 

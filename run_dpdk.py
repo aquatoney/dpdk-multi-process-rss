@@ -30,33 +30,28 @@ def cmd(exe, cpu_range, nics, gid):
   print(f'All processes in Group {gid} are running')
 
 
-to_kill = False
-
 def kill(exe):
   for p in proc_list:
     p.terminate()
-  # exe_name = exe.split('/')[-1]
-  # cmd_str = f'sudo killall {exe_name}'
-  # print(cmd_str)
-  # os.system(cmd_str)
+  print(f'{exe} has been killed')
+
 
 def exit(signum, frame):
-  global to_kill
   print('Ready to exit.')
-  to_kill = True
+  kill(exe)
+  sys.exit(0)
+
 
 def str2range(s):
   start = int(s.split('-')[0])
   end = int(s.split('-')[1])
   return range(start, end+1)
 
-# python3 run_dpdk.py build/symmetric_mp {c:1-4,p:04:00} {c:5-8,p:2-3}
+# python3 run_dpdk.py build/symmetric_mp {c=1-4,p=04:00} {c=5-8,p=2-3}
 if __name__ == '__main__':
   assert len(sys.argv) > 2
   signal.signal(signal.SIGINT, exit)
   exe = sys.argv[1]
-
-
   for i in range(2, len(sys.argv)):
     cpu_range = None
     nics = []
@@ -67,8 +62,8 @@ if __name__ == '__main__':
 
       for p in cp_str.split(','):
         print ()
-        key = p.split(':')[0]
-        value = p.split(':')[1]
+        key = p.split('=')[0]
+        value = p.split('=')[1]
         if key == 'c':
           cpu_range = str2range(value)
         if key == 'p':
@@ -82,8 +77,5 @@ if __name__ == '__main__':
   print('All processes are running')
 
   while True:
-    if to_kill:
-      kill(exe)
-      break
+    pass
 
-  print(f'{exe} has been killed')

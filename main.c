@@ -198,7 +198,7 @@ int sym_hash_enable(int port_id, uint32_t ftype, enum rte_eth_hash_function func
 
     ret = rte_eth_dev_filter_supported(port_id, RTE_ETH_FILTER_HASH);
     if (ret < 0) {
-        DPDK_ERROR("RTE_ETH_FILTER_HASH not supported on port: %d",
+        printf("RTE_ETH_FILTER_HASH not supported on port: %d",
                          port_id);
         return ret;
     }
@@ -216,7 +216,7 @@ int sym_hash_enable(int port_id, uint32_t ftype, enum rte_eth_hash_function func
                                   RTE_ETH_FILTER_SET, &info);
     if (ret < 0)
     {
-        DPDK_ERROR("Cannot set global hash configurations"
+        printf("Cannot set global hash configurations"
                         "on port %u", port_id);
         return ret;
     }
@@ -233,7 +233,7 @@ int sym_hash_set(int port_id, int enable)
 
     ret = rte_eth_dev_filter_supported(port_id, RTE_ETH_FILTER_HASH);
     if (ret < 0) {
-        DPDK_ERROR("RTE_ETH_FILTER_HASH not supported on port: %d",
+        printf("RTE_ETH_FILTER_HASH not supported on port: %d",
                          port_id);
         return ret;
     }
@@ -245,7 +245,7 @@ int sym_hash_set(int port_id, int enable)
 
     if (ret < 0)
     {
-        DPDK_ERROR("Cannot set symmetric hash enable per port "
+        printf("Cannot set symmetric hash enable per port "
                         "on port %u", port_id);
         return ret;
     }

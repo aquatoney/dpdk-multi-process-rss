@@ -472,6 +472,23 @@ unsigned long pkt_id = 0;
 unsigned long long pkt_vol = 0;
 struct timeval now;
 struct timeval milestone;
+#define PERF_AVG_NUM 10
+double throughputs[PERF_AVG_NUM];
+
+static void
+print_avg_throughput()
+{
+	double total = 0.0;
+	int i;
+	int r = 0;
+	for (i=0; i<PERF_AVG_NUM; i++) {
+		if (throughputs[i] <= 0) continue;
+		r++;
+		total += throughputs[i];
+	}
+	const unsigned id = rte_lcore_id();
+	printf("Lcore %d, Throughput: %lfGbps (last %d avg.)\n", id, (double)total/r, r);
+}
 
 /* Main function used by the processing threads.
  * Prints out some configuration details for the thread and then begins
@@ -492,6 +509,9 @@ lcore_main(void *arg __rte_unused)
 		printf("Lcore %u has nothing to do\n", id);
 		return 0;
 	}
+
+	memset(throughputs, 0, sizeof(double)*PERF_AVG_NUM);
+	int perf_index = 0;
 
 	/* build up message in msgbuf before printing to decrease likelihood
 	 * of multi-core message interleaving.
@@ -532,11 +552,14 @@ lcore_main(void *arg __rte_unused)
 					suseconds_t u = s * 1000000 + now.tv_usec - milestone.tv_usec;
 					double throughput = (double)8000000*pkt_vol/(u*1000*1000*1000);
 					// printf("time: %luus, pkt: %lu, vol: %lld, ", u, pkt_id, pkt_vol);
-					printf("Lcore %d, Throughput: %lfGbps\n", id, throughput);
+					throughputs[perf_index] = throughput;
+					print_avg_throughput();
+					// printf("Lcore %d, Throughput: %lfGbps\n", id, throughput);
 					milestone.tv_sec = now.tv_sec;
 					milestone.tv_usec = now.tv_usec;
 					pkt_id = 0;
 					pkt_vol = 0;
+					perf_index = (perf_index+1) % PERF_AVG_NUM;
 				}
 #endif
 #ifdef RSS_DEBUG
